@@ -1,0 +1,10 @@
+name = "AdaptiveEstimators"
+uuid = "f894c1f0-37bd-4d0b-bad6-c1e4fa45af5b"
+authors = ["Mandar Chitre <mandar@nus.edu.sg>"]
+version = "0.1.0"
+
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
+[compat]
+LinearAlgebra = "1.11.0"
