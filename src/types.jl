@@ -5,6 +5,14 @@ abstract type SystemModel end
 abstract type Estimator end
 
 """
+    setup(rng::AbstractRNG, model::SystemModel)
+
+Initializes the model parameters `ps` and state `st` using random number
+generator `rng`. Returns tuple `(ps, st)`.
+"""
+function setup end
+
+"""
     loss_and_gradient!(model::SystemModel, dloss::AbstractVector, ps::AbstractVector, st, data, t::Int)
 
 Computes a `loss` and its gradient `dloss` with respect to model parameters `ps`.

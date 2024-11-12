@@ -1,24 +1,30 @@
-using LinearAlgebra: dot
-
+import LinearAlgebra: dot
 export LinearModel, nearest
 
 ### linear system model
 
 """
-    LinearModel()
+    LinearModel(ptype, p)
+    LinearModel(ptype, p, decision)
 
-System model where the `data` is assumed to be of the form `(x, y)` and
-parameters `ps` are conjugate impulse response taps. If `p = length(ps)`,
-the linear system model is `y[t] = dot(ps, x[t:-1:t-p+1]) + noise`.
+Linear system model of specified order `p` and parameters `ps` of type `ptype`.
+The `data` is assumed to be of the form `(x, y)` such that:
+`y[t] = dot(ps, x[t:-1:t-p+1]) + noise`.
 
 If `decision` is specified, it is used to make decisions in decision-directed
 mode when `t` exceeds the length of `y`.
 """
-struct LinearModel{T} <: SystemModel
-  decision::T
+struct LinearModel{T1,T2} <: SystemModel
+  p::Int
+  decision::T2
 end
 
-LinearModel() = LinearModel(nothing)
+LinearModel(T, p) = LinearModel{T,typeof(identity)}(p, identity)
+LinearModel(T, p, decision) = LinearModel{T,typeof(decision)}(p, decision)
+
+function setup(rng, model::LinearModel{T1,T2}) where {T1,T2}
+  (zeros(T1, model.p), nothing)
+end
 
 function loss_and_gradient!(model::LinearModel, dloss, ps, st, (x, y), t)
   if t < length(ps)
