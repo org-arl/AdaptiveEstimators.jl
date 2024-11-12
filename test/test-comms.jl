@@ -12,7 +12,7 @@ function channel_estimation(T, ch, algo; M=16, N=1024, σ=1f-2, ts=1:N, saveat=0
     conj(a) * vcat(zeros(T, i), x[1:end-i])
   end
   y += σ * randn(rng, T, N)
-  r = fit!(LinearModel(T, M), algo, (x, y), ts; saveat)
+  r = fit!(LinearModel(T, M), algo, (x, y), ts; saveat, rng)
   @test length(r.ps) == M
   @test length(r.loss) == length(ts)
   @test length(r.out) == length(ts)
@@ -36,7 +36,7 @@ function channel_equalization(ch, algo; M=64, nsym=8192, ntrain=512, σ=1f-2, PS
   end
   y += σ * randn(rng, ComplexF64, nsym)
   decision = nearest(Q)
-  r = fit!(LinearModel(ComplexF64, M, decision), algo, (y, x[1:ntrain]), 1:length(x))
+  r = fit!(LinearModel(ComplexF64, M, decision), algo, (y, x[1:ntrain]), 1:length(x); rng)
   ser = count(decision.(r.out[ntrain+1:end]) != x[ntrain+1:end]) / (nsym - ntrain)
   @test length(r.ps) == M
   @test length(r.loss) == nsym
