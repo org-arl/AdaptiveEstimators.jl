@@ -35,9 +35,9 @@ function channel_equalization(ch, algo; M=64, nsym=8192, ntrain=512, σ=1f-2, PS
     conj(a) * vcat(zeros(ComplexF64, i), x[1:end-i])
   end
   y += σ * randn(rng, ComplexF64, nsym)
-  decide = nearest(Q)
-  r = linear_estimate!(algo, M, y, x[1:ntrain], 1:length(x); decide)
-  ser = count(decide.(r.out[ntrain+1:end]) != x[ntrain+1:end]) / (nsym - ntrain)
+  decision = nearest(Q)
+  r = linear_estimate!(algo, M, y, x[1:ntrain], 1:length(x); decision)
+  ser = count(decision.(r.out[ntrain+1:end]) != x[ntrain+1:end]) / (nsym - ntrain)
   @test length(r.ps) == M
   @test length(r.loss) == nsym
   @test length(r.out) == nsym

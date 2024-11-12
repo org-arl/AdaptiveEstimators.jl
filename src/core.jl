@@ -43,17 +43,17 @@ function estimate!(model::SystemModel, alg::Estimator, ps, st, data, ts; saveat=
 end
 
 """
-    linear_estimate!(alg::Estimator, p, x, y, ts=1:length(y); saveat=0, decide=nothing)
+    linear_estimate!(alg::Estimator, p, x, y, ts=1:length(y); saveat=0, decision=nothing)
 
 Convienence function for estimating linear model parameters using algorithm
 `alg`. The `p` parameter specifies the length of the model parameter vector
 `ps`. The linear system model is `y[t] = dot(ps, x[t:-1:t-p+1]) + noise`.
 
-If `decide` is specified, it is used to make decisions in decision directed
+If `decision` is specified, it is used to make decisions in decision-directed
 mode when `t` exceeds the length of `y`.
 
 For more details, see [`estimate!`](@ref).
 """
-function linear_estimate!(alg::Estimator, p, x, y, ts=1:length(y); saveat=0, decide=nothing)
-  estimate!(LinearModel(decide), alg, zeros(eltype(y), p), nothing, (x, y), ts; saveat)
+function linear_estimate!(alg::Estimator, p, x, y, ts=1:length(y); saveat=0, decision=nothing)
+  estimate!(LinearModel(decision), alg, zeros(eltype(y), p), nothing, (x, y), ts; saveat)
 end
