@@ -25,7 +25,7 @@ function channel_estimation(T, ch, algo; M=16, N=1024, σ=1f-2, ts=1:N, saveat=0
   @test r.ps ≈ h atol=3σ
 end
 
-function channel_equalization(ch, algo; M=64, nsym=8192, ntrain=512, σ=1f-2, PSK=4)
+function channel_equalization(ch, eq, algo; M=64, nsym=8192, ntrain=512, σ=1f-2, PSK=4)
   Q = cispi.(2 .* (0:PSK-1) ./ PSK)
   rng = StableRNG(1)
   x = rand(rng, Q, nsym)
@@ -36,9 +36,8 @@ function channel_equalization(ch, algo; M=64, nsym=8192, ntrain=512, σ=1f-2, PS
   end
   y += σ * randn(rng, ComplexF64, nsym)
   decision = nearest(Q)
-  r = fit!(LinearModel(ComplexF64, M, decision), algo, (y, x[1:ntrain]), 1:length(x); rng)
+  r = fit!(eq(ComplexF64, M, decision), algo, (y, x[1:ntrain]), 1:length(x); rng)
   ser = count(decision.(r.out[ntrain+1:end]) != x[ntrain+1:end]) / (nsym - ntrain)
-  @test length(r.ps) == M
   @test length(r.loss) == nsym
   @test length(r.out) == nsym
   @test ser < 0.001

@@ -23,10 +23,12 @@ include("test-comms.jl")
 end
 
 @testset verbose=true "channel equalization" begin
-  @testset "LMS" begin
-    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], LMS(0.01))
+  @testset "Linear" begin
+    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], LinearModel, LMS(0.01))
+    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], LinearModel, NLMS())
   end
-  @testset "NLMS" begin
-    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], NLMS())
+  @testset "DFE" begin
+    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], DFE, LMS(0.01))
+    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], DFE, NLMS())
   end
 end
