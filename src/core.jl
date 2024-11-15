@@ -31,7 +31,7 @@ Returns `EstimationResults` containing estimated paramaters `p`, parameter
 history `phist`, model outputs `y` and loss history `loss`.
 """
 function fit!(model::SystemModel, alg::Estimator, x, y,
-    nsteps=size(x)[end], decision=identity; saveat=0, rng=Random.GLOBAL_RNG)
+    nsteps=_len(x), decision=identity; saveat=0, rng=Random.GLOBAL_RNG)
   p, mstate = setup(rng, model)
   estate = setup(rng, alg, p)
   loss = Array{Float64}(undef, nsteps)
@@ -39,18 +39,16 @@ function fit!(model::SystemModel, alg::Estimator, x, y,
   phist = similar(p, length(p), histlen)
   out = similar(y, size(y)[1:end-1]..., nsteps)
   for i ∈ 1:nsteps
-    if ndims(x) == 1
-      out[i], dy = predict!(model, p, mstate, x[i])
-    else
-      out[i], dy = predict!(model, p, mstate, selectdim(x, ndims(x), i))
-    end
-    if i ≤ size(y)[end]
-      d = ndims(y) == 1 ? y[i] : selectdim(y, ndims(y), i)
-    else
-      d = decision(out[i])
-    end
+    out[i], dy = predict!(model, p, mstate, _get(x, i))
+    d = i ≤ _len(y) ? _get(y, i) : decision(out[i])
     loss[i] = update!(alg, p, estate, d - out[i], dy)
     saveat > 0 && i % saveat == 0 && (phist[:, i ÷ saveat] .= p)
   end
   EstimationResults(p, phist, out, loss)
 end
+
+# helpers
+_get(x::AbstractVector, i) = x[i]
+_get(x::AbstractMatrix, i) = x[:,i]
+_len(x::AbstractVector) = length(x)
+_len(x::AbstractMatrix) = size(x, 2)
