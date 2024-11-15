@@ -23,7 +23,7 @@ pkg> add AdaptiveEstimators
 ## API
 
 Currently, the public API consists of only the following:
-```
+```julia
 # fit model to data (x, y) using specified algorithm
 fit!(model::SystemModel, alg::Estimator, x, y; saveat, rng)
 fit!(model::SystemModel, alg::Estimator, x, y, nsteps, decision; ...)
@@ -47,9 +47,9 @@ See docstrings (`help fit!`, etc) for details.
 
 ### Channel estimation
 Consider a linear system:
-$$
-y_n = \sum_{i=0}^{N-1} h_i^* x_{n-i} + \text{noise}.
-$$
+
+$$y_n = \sum_{i=0}^{N-1} h_i^* x_{n-i} + \text{noise}.$$
+
 Here, $\{x_n\}$ may be a transmitted communication signal, and $\{y_n\}$ the received signal after passing through a channel with an impulse response $\{h_i\}$. Let us first consider a channel estimation application where we transmit a known baseband complex signal $\{x_n\}$, observe the received baseband complex signal $\{y_n\}$, and wish to estimate $\{h_i\}$:
 ```julia
 using AdaptiveEstimators
