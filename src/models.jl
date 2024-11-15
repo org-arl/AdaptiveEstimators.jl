@@ -31,43 +31,32 @@ end
 
 ### DFE
 
-# struct DFE{T1,T2} <: SystemModel
-#   ffsize::Int
-#   fbsize::Int
-#   decision::T2
-# end
+struct DFE{T} <: SystemModel
+  ffsize::Int
+  fbsize::Int
+end
 
-# DFE(fbsize::Int, decision) = DFE{ComplexF32,typeof(decision)}(1, fbsize, decision)
-# DFE(ffsize::Int, fbsize::Int, decision) = DFE{ComplexF32,typeof(decision)}(ffsize, fbsize, decision)
-# DFE(T::DataType, fbsize::Int, decision) = DFE{T,typeof(decision)}(1, fbsize, decision)
-# DFE(T::DataType, ffsize::Int, fbsize::Int, decision) = DFE{T,typeof(decision)}(ffsize, fbsize, decision)
+DFE(fbsize::Int) = DFE{ComplexF32}(1, fbsize)
+DFE(ffsize::Int, fbsize::Int) = DFE{ComplexF32}(ffsize, fbsize)
+DFE(T::DataType, fbsize::Int) = DFE{T}(1, fbsize)
+DFE(T::DataType, ffsize::Int, fbsize::Int) = DFE{T}(ffsize, fbsize)
 
-# function setup(rng, model::DFE{T1,T2}) where {T1,T2}
-#   (zeros(T1, model.ffsize + model.fbsize), zeros(T1, model.fbsize))
-# end
+function setup(rng, model::DFE{T}) where T
+  (zeros(T, model.ffsize + model.fbsize), zeros(T, model.ffsize + model.fbsize))
+end
 
-# function predict!(model::DFE, ps, st, x, y, t)
-#   ffsize = model.ffsize
-#   fbsize = model.fbsize
-#   if t < ffsize
-#     dloss[1:t] .= @view x[t:-1:1]
-#     dloss[t+1:ffsize] .= 0
-#   else
-#     dloss[1:ffsize] .= @view x[t:-1:t-ffsize+1]
-#   end
-#   dloss[ffsize+1:end] .= st
-#   ŷ = dot(ps, dloss)
-#   circshift!(st, 1)
-#   ȳ = t ≤ length(y) ? y[t] : model.decision(ŷ)
-#   st[1] = ȳ
-#   e = ȳ - ŷ
-#   (ŷ, e)
-# end
+function predict!(model::DFE, p, mstate, x)
+  fb = @views dot(p[model.ffsize+1:end], mstate[model.ffsize+1:end])
+  circshift!(mstate, 1)
+  mstate[1] = x
+  ŷ = @views dot(p[1:model.ffsize], mstate[1:model.ffsize]) + fb
+  mstate[model.ffsize+1] = ŷ  # replaced during update!
+  ŷ, mstate
+end
 
-#   loss = abs2(e)
-#   dloss .*= -2 * conj(e)
-#   (e, loss, ŷ)
-# end
+function update!(model::DFE, mstate, y)
+  mstate[model.ffsize+1] = y
+end
 
 ### utilities
 

@@ -47,6 +47,13 @@ Returns tuple `(y, dy)`.
 function predict! end
 
 """
+    update!(model::SystemModel, mstate, y)
+
+Updates the model state `mstate` using desired model output `y`.
+"""
+update!(model::SystemModel, mstate, y) = nothing
+
+"""
     update!(alg::Estimator, p::AbstractVector, estate, e, dy)
 
 Updates the model parameters `p` using prediction error `e` and tangent `dy`.
