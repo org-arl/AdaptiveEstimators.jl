@@ -23,29 +23,25 @@ end
 
 ### NLMS
 
-# """
-#     NLMS(μ=0.1)
+"""
+    NLMS(μ=0.1)
 
-# Normalized Least Mean Squares (NLMS) algorithm with step size μ.
-# """
-# struct NLMS{T} <: Estimator
-#   μby2::T
-#   NLMS(μ) = new{typeof(μ)}(μ / 2)
-# end
+Normalized least Mean Squares (NLMS) algorithm with step size μ.
+"""
+struct NLMS{T} <: Estimator
+  μ::T
+end
 
-# NLMS() = NLMS(1f-1)
+NLMS() = NLMS(1f-1)
 
-# Base.show(io::IO, alg::NLMS) = print(io, "NLMS($(repr(alg.μby2 * 2)))")
+Base.show(io::IO, alg::NLMS) = print(io, "NLMS($(repr(alg.μ)))")
 
-# function update!(alg::NLMS, ps, st, data, e, loss, dloss, t)
-#   if t < length(ps)
-#     sf = @views sum(abs2, data[1][t:-1:1])
-#   else
-#     sf = @views sum(abs2, data[1][t:-1:t-length(ps)+1])
-#   end
-#   sf += eps(typeof(sf))
-#   @. ps -= alg.μby2 * dloss / sf
-# end
+function update!(alg::NLMS, p, estate, e, dy)
+  sf = sum(abs2, dy)
+  sf += eps(typeof(sf))
+  @. p += alg.μ * dy * conj(e) / sf
+  abs2(e)
+end
 
 # ### RLS
 

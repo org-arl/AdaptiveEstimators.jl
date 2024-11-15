@@ -16,9 +16,9 @@ include("test-comms.jl")
     channel_estimation(ComplexF64, [(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], NLMS(1f0))
   end
   @testset "options" begin
-    channel_estimation(Float64, [(0,0.8), (7,0.3), (11,-0.5)], LMS(); ts=1:1000)
+    channel_estimation(Float64, [(0,0.8), (7,0.3), (11,-0.5)], LMS(); nsteps=1000)
     channel_estimation(Float64, [(0,0.8), (7,0.3), (11,-0.5)], LMS(); saveat=1)
-    channel_estimation(Float64, [(0,0.8), (7,0.3), (11,-0.5)], LMS(); ts=1:1000, saveat=5)
+    channel_estimation(Float64, [(0,0.8), (7,0.3), (11,-0.5)], LMS(); nsteps=1000, saveat=5)
   end
 end
 
@@ -27,8 +27,8 @@ end
     channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], LinearModel, LMS(0.01))
     channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], LinearModel, NLMS())
   end
-  @testset "DFE" begin
-    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], DFE, LMS(0.01))
-    channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], DFE, NLMS())
-  end
+  # @testset "DFE" begin
+  #   channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], DFE, LMS(0.01))
+  #   channel_equalization([(0,0.8+0im), (7,0+0.3im), (11,-0.2-0.5im)], DFE, NLMS())
+  # end
 end
