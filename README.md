@@ -87,7 +87,7 @@ y = 0.8 * copy(x) +
     (-0.2-0.5im) * vcat(zeros(11), x[1:end-11]) +
     1e-2 * randn(ComplexF64, length(x))
 
-# equalize using a 64-tap linear equalizer and LMS using 512 training stmbols
+# equalize using a 64-tap linear equalizer, RLS training and 512 training symbols
 r = fit!(LinearModel(ComplexF64, 64), RLS(), y, x[1:512], length(x), nearest(Q))
 ```
 The first 512 training symbols are used to estimate the equalizer initially. After that the `nearest(Q)` decision function is used to continue adapting the equalizer in a decision-directed mode. We can check the symbol error rate (SER) and the equalized constellation:
@@ -112,3 +112,30 @@ scatter(r.y[513:end]; markersize=2, legend=false, title="SER=$(round(ser; digits
 ![](docs/fig3.png)
 
 Perfect equalization!
+
+## API
+
+Currently, the public API consists of only the following:
+```
+# fit model to data (x, y) using specified algorithm
+fit!(model::SystemModel, alg::Estimator, x, y; saveat, rng)
+fit!(model::SystemModel, alg::Estimator, x, y, nsteps, decision; ...)
+
+# available models
+LinearModel(ptype, n)
+DFE(ffsize, fbsize)
+DFE(T, ffsize, fbsize)
+
+# available estimation algorithms
+LMS(μ=0.01)
+NLMS(μ=0.1)
+RLS(λ=0.99, σ=1.0)
+
+# utilities
+nearest(constellation)
+```
+See docstrings (`help fit!`, etc) for details.
+
+## Contributing
+
+Contributions in the form of bug reports, feature requests, ideas/suggestions, bug fixes, code enhancements, and documentation updates are most welcome. To understand the design of the package, a good starting point is the documentation of the model and estimation algorithm API in [`types.jl`](src/types.jl).
