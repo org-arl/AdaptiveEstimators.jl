@@ -18,6 +18,29 @@ julia> ] # to enter package mode
 pkg> add AdaptiveEstimators
 ```
 
+## API
+
+Currently, the public API consists of only the following:
+```
+# fit model to data (x, y) using specified algorithm
+fit!(model::SystemModel, alg::Estimator, x, y; saveat, rng)
+fit!(model::SystemModel, alg::Estimator, x, y, nsteps, decision; ...)
+
+# available models
+LinearModel(ptype, n)
+DFE(ffsize, fbsize)
+DFE(T, ffsize, fbsize)
+
+# available estimation algorithms
+LMS(μ=0.01)
+NLMS(μ=0.1)
+RLS(λ=0.99, σ=1.0)
+
+# utilities
+nearest(constellation)
+```
+See docstrings (`help fit!`, etc) for details.
+
 ## Examples
 
 ### Channel estimation
@@ -112,29 +135,6 @@ scatter(r.y[513:end]; markersize=2, legend=false, title="SER=$(round(ser; digits
 ![](docs/fig3.png)
 
 Perfect equalization!
-
-## API
-
-Currently, the public API consists of only the following:
-```
-# fit model to data (x, y) using specified algorithm
-fit!(model::SystemModel, alg::Estimator, x, y; saveat, rng)
-fit!(model::SystemModel, alg::Estimator, x, y, nsteps, decision; ...)
-
-# available models
-LinearModel(ptype, n)
-DFE(ffsize, fbsize)
-DFE(T, ffsize, fbsize)
-
-# available estimation algorithms
-LMS(μ=0.01)
-NLMS(μ=0.1)
-RLS(λ=0.99, σ=1.0)
-
-# utilities
-nearest(constellation)
-```
-See docstrings (`help fit!`, etc) for details.
 
 ## Contributing
 
