@@ -6,7 +6,7 @@ export LMS, NLMS, RLS
 """
     LMS(μ=0.01)
 
-Least Mean Squares (LMS) algorithm with step size μ.
+Least Mean Squares (LMS) algorithm with step size `μ`.
 """
 struct LMS{T} <: Estimator
   μ::T
@@ -26,7 +26,7 @@ end
 """
     NLMS(μ=0.1)
 
-Normalized least Mean Squares (NLMS) algorithm with step size μ.
+Normalized least Mean Squares (NLMS) algorithm with step size `μ`.
 """
 struct NLMS{T} <: Estimator
   μ::T
@@ -48,8 +48,8 @@ end
 """
     RLS(λ=0.99, σ=1.0)
 
-Recursive Least Squares (RLS) algorithm with forgetting factor λ and initial
-covariance σ.
+Recursive Least Squares (RLS) algorithm with forgetting factor `λ` and initial
+covariance `σ`.
 """
 struct RLS{T} <: Estimator
   λ::T
@@ -70,14 +70,18 @@ function setup(rng, alg::RLS, p)
   (k, Rinv, dyRinv, kdyRinv)
 end
 
+# based on https://ocw.mit.edu/courses/2-161-signal-processing-continuous-and-discrete-fall-2008/resources/rls/
+# with minor changes to handle complex numbers
 function update!(alg::RLS, p, estate, e, dy)
   k, Rinv, dyRinv, kdyRinv = estate
-  mul!(k, Rinv, dy)
-  k ./= alg.λ + dot(dy, k)
+  # k = Rinv * dy / (λ + dy' * Rinv * dy) #
+  mul!(k, Rinv, dy)                       #
+  k ./= alg.λ + dot(dy, k)                #
   @. p += k * conj(e)
-  mul!(dyRinv, dy', Rinv)
-  mul!(kdyRinv, k, dyRinv)
-  Rinv .-= kdyRinv
-  Rinv ./= alg.λ
+  # Rinv = (Rinv - k * dy' * Rinv) / λ    #
+  mul!(dyRinv, dy', Rinv)                 #
+  mul!(kdyRinv, k, dyRinv)                #
+  Rinv .-= kdyRinv                        #
+  Rinv ./= alg.λ                          #
   abs2(e)
 end
