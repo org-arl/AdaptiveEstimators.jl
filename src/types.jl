@@ -42,7 +42,9 @@ or assume that they remain constant after the next call to this function.
 Model state `mstate` may be mutated during the call. Input `x` and parameters
 `p` are not modified.
 
-Returns tuple `(y, dy)`.
+Returns tuple `(y, dy)`. For efficiency, `dy` may be a view or a cached value
+that changes in-place at each call to `predict!` or `update!`. A copy should
+be made if the caller needs to store the tangent for later use.
 """
 function predict! end
 

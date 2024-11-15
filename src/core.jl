@@ -41,9 +41,9 @@ function fit!(model::SystemModel, alg::Estimator, x, y,
   for i ∈ 1:nsteps
     out[i], dy = predict!(model, p, mstate, _get(x, i))
     d = i ≤ _len(y) ? _get(y, i) : decision(out[i])
-    update!(model, mstate, d)
     loss[i] = update!(alg, p, estate, d - out[i], dy)
     saveat > 0 && i % saveat == 0 && (phist[:, i ÷ saveat] .= p)
+    update!(model, mstate, d)
   end
   EstimationResults(p, phist, out, loss)
 end

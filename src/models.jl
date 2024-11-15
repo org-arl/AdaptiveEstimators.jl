@@ -47,14 +47,14 @@ end
 
 function predict!(model::DFE, p, mstate, x)
   fb = @views dot(p[model.ffsize+1:end], mstate[model.ffsize+1:end])
-  circshift!(mstate, 1)
+  mstate[2:model.ffsize] .= mstate[1:model.ffsize-1]
   mstate[1] = x
   ŷ = @views dot(p[1:model.ffsize], mstate[1:model.ffsize]) + fb
-  mstate[model.ffsize+1] = ŷ  # replaced during update!
   ŷ, mstate
 end
 
 function update!(model::DFE, mstate, y)
+  mstate[model.ffsize+2:end] .= mstate[model.ffsize+1:end-1]
   mstate[model.ffsize+1] = y
 end
 
