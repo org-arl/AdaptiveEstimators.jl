@@ -1,3 +1,5 @@
+[![CI](https://github.com/org-arl/UnderwaterAcoustics.jl/workflows/CI/badge.svg)](https://github.com/org-arl/UnderwaterAcoustics.jl/actions)
+
 # AdaptiveEstimators.jl
 ### Adaptive estimation and filtering tools
 
