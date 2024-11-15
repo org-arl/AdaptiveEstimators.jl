@@ -5,80 +5,69 @@ export nearest
 ### linear system model
 
 """
-    LinearModel(ptype, p)
-    LinearModel(ptype, p, decision)
+    LinearModel(ptype, n)
 
-Linear system model of specified order `p` and parameters `ps` of type `ptype`.
-The `data` is assumed to be of the form `(x, y)` such that:
-`y[t] = dot(ps, x[t:-1:t-p+1]) + noise`.
-
-If `decision` is specified, it is used to make decisions in decision-directed
-mode when `t` exceeds the length of `y`.
+Linear scalar system model of specified order `n` and type `ptype`, such that:
+```
+y[t] = dot(p, x[t:-1:t-n+1]) + noise
+```
+for input `x`, output `y`, parameters `p` and time index `t`.
 """
-struct LinearModel{T1,T2} <: SystemModel
-  p::Int
-  decision::T2
+struct LinearModel{T} <: SystemModel
+  n::Int
 end
 
-LinearModel(T, p) = LinearModel{T,typeof(identity)}(p, identity)
-LinearModel(T, p, decision) = LinearModel{T,typeof(decision)}(p, decision)
+LinearModel(T, p) = LinearModel{T}(p)
 
-function setup(rng, model::LinearModel{T1,T2}) where {T1,T2}
-  (zeros(T1, model.p), nothing)
+function setup(rng, model::LinearModel{T}) where T
+  (zeros(T, model.n), zeros(T, model.n))
 end
 
-function loss_and_gradient!(model::LinearModel, dloss, ps, st, (x, y), t)
-  if t < length(ps)
-    dloss[1:t] .= @view x[t:-1:1]
-    dloss[t+1:end] .= 0
-  else
-    dloss .= @view x[t:-1:t-length(ps)+1]
-  end
-  ŷ = dot(ps, dloss)
-  ȳ = t ≤ length(y) ? y[t] : model.decision(ŷ)
-  e = ȳ - ŷ
-  loss = abs2(e)
-  dloss .*= -2 * conj(e)
-  (loss, st, ŷ)
+function predict!(model::LinearModel, p, mstate, x)
+  circshift!(mstate, 1)
+  mstate[1] = x
+  dot(p, mstate), mstate
 end
 
 ### DFE
 
-struct DFE{T1,T2} <: SystemModel
-  ffsize::Int
-  fbsize::Int
-  decision::T2
-end
+# struct DFE{T1,T2} <: SystemModel
+#   ffsize::Int
+#   fbsize::Int
+#   decision::T2
+# end
 
-DFE(fbsize::Int, decision) = DFE{ComplexF32,typeof(decision)}(1, fbsize, decision)
-DFE(ffsize::Int, fbsize::Int, decision) = DFE{ComplexF32,typeof(decision)}(ffsize, fbsize, decision)
-DFE(T::DataType, fbsize::Int, decision) = DFE{T,typeof(decision)}(1, fbsize, decision)
-DFE(T::DataType, ffsize::Int, fbsize::Int, decision) = DFE{T,typeof(decision)}(ffsize, fbsize, decision)
+# DFE(fbsize::Int, decision) = DFE{ComplexF32,typeof(decision)}(1, fbsize, decision)
+# DFE(ffsize::Int, fbsize::Int, decision) = DFE{ComplexF32,typeof(decision)}(ffsize, fbsize, decision)
+# DFE(T::DataType, fbsize::Int, decision) = DFE{T,typeof(decision)}(1, fbsize, decision)
+# DFE(T::DataType, ffsize::Int, fbsize::Int, decision) = DFE{T,typeof(decision)}(ffsize, fbsize, decision)
 
-function setup(rng, model::DFE{T1,T2}) where {T1,T2}
-  (zeros(T1, model.ffsize + model.fbsize), zeros(T1, model.fbsize))
-end
+# function setup(rng, model::DFE{T1,T2}) where {T1,T2}
+#   (zeros(T1, model.ffsize + model.fbsize), zeros(T1, model.fbsize))
+# end
 
-function loss_and_gradient!(model::DFE, dloss, ps, st, (x, y), t)
-  ffsize = model.ffsize
-  fbsize = model.fbsize
-  if t < ffsize
-    dloss[1:t] .= @view x[t:-1:1]
-    dloss[t+1:ffsize] .= 0
-  else
-    dloss[1:ffsize] .= @view x[t:-1:t-ffsize+1]
-  end
-  dloss[ffsize+1:end] .= st
-  ŷ = dot(ps, dloss)
-  # TODO: decide mutate st or copy?
-  circshift!(st, 1)
-  ȳ = t ≤ length(y) ? y[t] : model.decision(ŷ)
-  st[1] = ȳ
-  e = ȳ - ŷ
-  loss = abs2(e)
-  dloss .*= -2 * conj(e)
-  (loss, st, ŷ)
-end
+# function predict!(model::DFE, ps, st, x, y, t)
+#   ffsize = model.ffsize
+#   fbsize = model.fbsize
+#   if t < ffsize
+#     dloss[1:t] .= @view x[t:-1:1]
+#     dloss[t+1:ffsize] .= 0
+#   else
+#     dloss[1:ffsize] .= @view x[t:-1:t-ffsize+1]
+#   end
+#   dloss[ffsize+1:end] .= st
+#   ŷ = dot(ps, dloss)
+#   circshift!(st, 1)
+#   ȳ = t ≤ length(y) ? y[t] : model.decision(ŷ)
+#   st[1] = ȳ
+#   e = ȳ - ŷ
+#   (ŷ, e)
+# end
+
+#   loss = abs2(e)
+#   dloss .*= -2 * conj(e)
+#   (e, loss, ŷ)
+# end
 
 ### utilities
 

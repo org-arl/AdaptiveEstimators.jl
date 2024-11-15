@@ -1,3 +1,4 @@
+import LinearAlgebra: diagm
 export LMS, NLMS
 
 ### LMS
@@ -8,40 +9,66 @@ export LMS, NLMS
 Least Mean Squares (LMS) algorithm with step size μ.
 """
 struct LMS{T} <: Estimator
-  μby2::T
-  LMS(μ) = new{typeof(μ)}(μ / 2)
+  μ::T
 end
 
 LMS() = LMS(1f-2)
 
-Base.show(io::IO, alg::LMS) = print(io, "LMS($(repr(alg.μby2 * 2)))")
+Base.show(io::IO, alg::LMS) = print(io, "LMS($(repr(alg.μ)))")
 
-function update!(alg::LMS, ps, st, data, loss, dloss, t)
-  @. ps -= alg.μby2 * dloss
+function update!(alg::LMS, p, estate, e, dy)
+  @. p += alg.μ * dy * conj(e)
+  abs2(e)
 end
 
 ### NLMS
 
-"""
-    NLMS(μ=0.1)
+# """
+#     NLMS(μ=0.1)
 
-Normalized Least Mean Squares (NLMS) algorithm with step size μ.
-"""
-struct NLMS{T} <: Estimator
-  μby2::T
-  NLMS(μ) = new{typeof(μ)}(μ / 2)
-end
+# Normalized Least Mean Squares (NLMS) algorithm with step size μ.
+# """
+# struct NLMS{T} <: Estimator
+#   μby2::T
+#   NLMS(μ) = new{typeof(μ)}(μ / 2)
+# end
 
-NLMS() = NLMS(1f-1)
+# NLMS() = NLMS(1f-1)
 
-Base.show(io::IO, alg::NLMS) = print(io, "NLMS($(repr(alg.μby2 * 2)))")
+# Base.show(io::IO, alg::NLMS) = print(io, "NLMS($(repr(alg.μby2 * 2)))")
 
-function update!(alg::NLMS, ps, st, data, loss, dloss, t)
-  if t < length(ps)
-    sf = @views sum(abs2, data[1][t:-1:1])
-  else
-    sf = @views sum(abs2, data[1][t:-1:t-length(ps)+1])
-  end
-  sf += eps(typeof(sf))
-  @. ps -= alg.μby2 * dloss / sf
-end
+# function update!(alg::NLMS, ps, st, data, e, loss, dloss, t)
+#   if t < length(ps)
+#     sf = @views sum(abs2, data[1][t:-1:1])
+#   else
+#     sf = @views sum(abs2, data[1][t:-1:t-length(ps)+1])
+#   end
+#   sf += eps(typeof(sf))
+#   @. ps -= alg.μby2 * dloss / sf
+# end
+
+# ### RLS
+
+# """
+#     RLS(λ=0.99, σ=1.0)
+
+# Recursive Least Squares (RLS) algorithm with forgetting factor λ and initial
+# covariance σ.
+# """
+# struct RLS{T} <: Estimator
+#   λ::T
+#   σ::T
+# end
+
+# RLS() = RLS(0.99f0, 1f0)
+# RLS(λ) = RLS(λ, one(typeof(λ)))
+
+# Base.show(io::IO, alg::RLS) = print(io, "RLS($(alg.λ), $(alg.σ)")
+
+# setup(rng, alg::RLS, ps) = diagm(ones(eltype(ps), length(ps)) * alg.σ)
+
+# function update!(alg::NLMS, ps, st, data, e, loss, dloss, t)
+#   #x?
+#   k = st * x ./ (alg.λ + x' * st * x)
+#   @. ps += k * e
+# end
